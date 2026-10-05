@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: stg_sucursal
+    description: "Espejo limpio de raw.sucursal."
+    columns:
+      - name: id_sucursal
+        description: "Clave natural de sucursal."
+        tests: [unique, not_null]
+  - name: stg_categoria
+    description: "Espejo limpio de raw.categoria."
+    columns:
+      - name: id_categoria
+        tests: [unique, not_null]
+  - name: stg_marca
+    description: "Espejo limpio de raw.marca."
+    columns:
+      - name: id_marca
+        tests: [unique, not_null]
+  - name: stg_producto
+    description: "Espejo limpio de raw.producto con casteos."
+    columns:
+      - name: id_producto
+        tests: [unique, not_null]
+      - name: unidad_medida
+        tests:
+          - accepted_values:
+              values: ['botella', 'caja', 'paquete', 'unidad']
+  - name: stg_cliente
+    description: "Espejo limpio de raw.cliente."
+    columns:
+      - name: id_cliente
+        tests: [unique, not_null]
+      - name: tipo_cliente
+        tests:
+          - accepted_values:
+              values: ['Mayorista', 'Minorista', 'Restaurante', 'Tienda de barrio']
+  - name: stg_venta
+    description: "Espejo limpio de raw.venta (cabeceras)."
+    columns:
+      - name: id_venta
+        tests: [unique, not_null]
+      - name: fecha
+        tests: [not_null]
+      - name: canal
+        tests:
+          - accepted_values:
+              values: ['Mayorista', 'Televenta', 'Tienda', 'Web']
+      - name: metodo_pago
+        tests:
+          - accepted_values:
+              values: ['Crédito', 'Efectivo', 'Tarjeta', 'Transferencia']
+      - name: estado
+        tests:
+          - accepted_values:
+              values: ['ANULADA', 'COMPLETADA', 'PENDIENTE']
+  - name: stg_venta_detalle
+    description: "Espejo limpio de raw.venta_detalle (líneas)."
+    columns:
+      - name: id_detalle
+        tests: [unique, not_null]
+      - name: id_venta
+        tests: [not_null]
+  - name: stg_inventario_bodega
+    description: "Espejo limpio de raw.inventario_bodega (foto por corte)."
+    columns:
+      - name: fecha_corte
+        tests: [not_null]
+      - name: id_sucursal
+        tests: [not_null]
+      - name: id_producto
+        tests: [not_null]
+  - name: stg_devoluciones
+    description: "Espejo limpio de raw.devoluciones."
+    columns:
+      - name: id_devolucion
+        tests: [unique, not_null]
+      - name: motivo
+        tests:
+          - accepted_values:
+              values: ['Cliente desistió', 'Empaque defectuoso', 'Error de despacho',
+                       'Producto dañado', 'Vencimiento cercano']
+  - name: stg_metas_ventas
+    description: "Espejo limpio de raw.metas_ventas (periodo 'YYYY-MM' sin normalizar)."
+    columns:
+      - name: periodo
+        tests: [not_null]
+      - name: id_sucursal
+        tests: [not_null]
+  - name: stg_promociones
+    description: "Espejo limpio de raw.promociones (reserva para Fase 4/análisis)."
+    columns:
+      - name: id_promocion
+        tests: [unique, not_null]
+  - name: stg_proveedores_precios
+    description: "Espejo limpio de raw.proveedores_precios (reserva para análisis de costo)."
+    columns:
+      - name: id_proveedor
+        tests: [not_null]
+      - name: id_producto
+        tests: [not_null]

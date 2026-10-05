@@ -1,0 +1,14 @@
+# Imagen de Airflow + dbt-postgres (para orquestar dbt con BashOperator).
+# Se construye con: docker compose build
+# NOTA: esta imagen es portable entre máquinas. El ajuste del UID del host
+# NO se hace aquí sino en runtime vía scripts/entrypoint-airflow.sh
+# (AIRFLOW_UID del .env; cambiarlo solo exige recreate, no rebuild).
+ARG AIRFLOW_IMAGE_NAME=apache/airflow:2.10.5-python3.11
+FROM ${AIRFLOW_IMAGE_NAME}
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# El wrapper (entrypoint-airflow.sh) debe arrancar como root para poder hacer
+# usermod; el entrypoint oficial baja luego a `airflow` vía gosu.
+USER root

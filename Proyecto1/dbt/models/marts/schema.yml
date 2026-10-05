@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: dim_fecha
+    description: "Calendario continuo entre min y max fecha de los hechos."
+    columns:
+      - name: fecha
+        tests: [unique, not_null]
+  - name: dim_producto
+    description: "Productos SCD1 con categoría/marca desnormalizadas."
+    columns:
+      - name: producto_sk
+        tests: [unique, not_null]
+      - name: id_producto
+        tests: [unique, not_null]
+  - name: dim_cliente
+    description: "Clientes SCD1."
+    columns:
+      - name: cliente_sk
+        tests: [unique, not_null]
+      - name: id_cliente
+        tests: [unique, not_null]
+  - name: dim_sucursal
+    description: "Sucursales SCD1."
+    columns:
+      - name: sucursal_sk
+        tests: [unique, not_null]
+      - name: id_sucursal
+        tests: [unique, not_null]
+
+  - name: fact_ventas
+    description: "Grano: línea de venta. subtotal = subtotal_calculado (regla auditada)."
+    columns:
+      - name: id_detalle
+        tests: [unique, not_null]
+      - name: fecha_fk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_fecha')
+              field: fecha
+      - name: producto_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_producto')
+              field: producto_sk
+      - name: cliente_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_cliente')
+              field: cliente_sk
+      - name: sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: sucursal_sk
+      - name: subtotal
+        tests: [not_null]
+
+  - name: fact_inventario
+    description: "Grano: corte x sucursal x producto (foto periódica)."
+    columns:
+      - name: fecha_corte
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_fecha')
+              field: fecha
+      - name: sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: sucursal_sk
+      - name: producto_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_producto')
+              field: producto_sk
+
+  - name: fact_devoluciones
+    description: "Grano: una devolución; sucursal vía venta."
+    columns:
+      - name: id_devolucion
+        tests: [unique, not_null]
+      - name: producto_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_producto')
+              field: producto_sk
+
+  - name: fact_metas
+    description: "Grano: mes (día 1) x sucursal."
+    columns:
+      - name: periodo
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_fecha')
+              field: fecha
+      - name: sucursal_sk
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sucursal')
+              field: sucursal_sk

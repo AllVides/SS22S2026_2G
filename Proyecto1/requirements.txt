@@ -1,0 +1,12 @@
+# Dependencias extra de Python para la imagen de Airflow (Dockerfile.airflow).
+# dbt-postgres permite ejecutar dbt directamente dentro de los contenedores
+# de Airflow (webserver/scheduler), p. ej. con BashOperator.
+# NOTA: 1.9.4 no existe en PyPI (la rama 1.9 llegó solo hasta 1.9.1).
+# Se fija 1.9.1 para ir a la par del contenedor dbt (imagen 1.9.latest).
+# dbt-core se fija explícito porque el pin del adapter es laxo y pip
+# resolvía core 1.12.x (incompatible con el plugin 1.9.1 y sin --profiles-dir).
+dbt-core==1.9.0
+dbt-postgres==1.9.1
+# Conexión Postgres para scripts/extract_load_*.py (la imagen Airflow ya la
+# trae vía el provider postgres; se declara explícita para corridas manuales).
+psycopg2-binary>=2.9

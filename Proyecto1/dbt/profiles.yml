@@ -1,0 +1,16 @@
+# Conexión al warehouse. Toda la autenticación viene del .env:
+# POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_WAREHOUSE_DB, DBT_HOST, DBT_PORT,
+# DBT_SCHEMA, DBT_THREADS.
+sgfood:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_HOST', 'postgres') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | as_number }}"
+      user: "{{ env_var('POSTGRES_USER') }}"
+      pass: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: "{{ env_var('POSTGRES_WAREHOUSE_DB') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'analytics') }}"
+      threads: "{{ env_var('DBT_THREADS', '4') | as_number }}"
+      keepalives_idle: 0

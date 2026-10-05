@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  # Capa raw: espejo 1:1 de las fuentes, cargada por scripts/extract_load_*.py
+  # (TRUNCATE + LOAD). Sin constraints: la calidad se valida aquí en staging.
+  - name: raw
+    database: "{{ env_var('POSTGRES_WAREHOUSE_DB') }}"
+    schema: raw
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 48, period: hour}
+      error_after: {count: 720, period: hour}
+    tables:
+      - name: sucursal
+      - name: categoria
+      - name: marca
+      - name: producto
+      - name: cliente
+      - name: venta
+      - name: venta_detalle
+      - name: inventario_bodega
+      - name: devoluciones
+      - name: metas_ventas
+      - name: promociones
+      - name: proveedores_precios

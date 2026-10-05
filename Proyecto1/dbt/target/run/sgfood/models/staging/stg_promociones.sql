@@ -1,0 +1,15 @@
+
+  create view "sgfood"."staging"."stg_promociones__dbt_tmp"
+    
+    
+  as (
+    select
+    cast(id_promocion as integer) as id_promocion,
+    nullif(trim(nombre), '') as nombre,
+    cast(fecha_inicio as date) as fecha_inicio,
+    cast(fecha_fin as date) as fecha_fin,
+    cast(id_categoria as integer) as id_categoria,
+    cast(porcentaje_descuento as numeric(5, 4)) as porcentaje_descuento,
+    _loaded_at
+from "sgfood"."raw"."promociones"
+  );

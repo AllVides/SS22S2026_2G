@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: int_ventas_detalle
+    description: "Línea de venta enriquecida (joins + subtotal recalculado)."
+    columns:
+      - name: id_detalle
+        tests: [unique, not_null]
+      - name: id_venta
+        tests: [not_null]
+      - name: subtotal_calculado
+        description: "cantidad * precio_unitario * (1 - descuento), redondeado a 2."
+        tests: [not_null]
+  - name: int_inventario_estado
+    description: "Foto de inventario con banderas de stock bajo y vencimiento."
+    columns:
+      - name: fecha_corte
+        tests: [not_null]
+      - name: id_sucursal
+        tests: [not_null]
+      - name: id_producto
+        tests: [not_null]
+  - name: int_devoluciones
+    description: "Devoluciones con sucursal heredada de su venta."
+    columns:
+      - name: id_devolucion
+        tests: [unique, not_null]
+      - name: id_venta
+        tests: [not_null]

@@ -1,0 +1,7 @@
+# Normaliza fin de línea a LF al hacer commit, sin importar el autocrlf del
+# sistema que clona. Crítico en Windows: los scripts de entrypoint/init-db
+# fallan con `bad interpreter` si llegan con CRLF y nada del stack arranca.
+*.sh text eol=lf
+*.sql text eol=lf
+.env* text eol=lf
+Dockerfile* text eol=lf

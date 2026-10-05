@@ -1,0 +1,33 @@
+name: 'sgfood'
+version: '1.0.0'
+config-version: 2
+
+# Perfil definido en profiles.yml (usa variables del .env)
+profile: 'sgfood'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+models:
+  sgfood:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts
+
+seeds:
+  sgfood:
+    +schema: raw
