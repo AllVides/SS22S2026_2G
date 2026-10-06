@@ -22,7 +22,7 @@ import logging
 import os
 import sys
 
-# NOTA: psycopg2 se importa dentro de conectar() para que --help y --dry-run
+# psycopg2 se importa dentro de conectar() para que --help y --dry-run
 # funcionen sin la librería instalada (solo la carga real la requiere).
 
 logging.basicConfig(
@@ -40,20 +40,61 @@ TABLAS = {
     "sucursal": ["id_sucursal", "nombre", "ciudad", "departamento"],
     "categoria": ["id_categoria", "nombre"],
     "marca": ["id_marca", "nombre"],
-    "producto": ["id_producto", "sku", "nombre", "id_categoria", "id_marca",
-                 "unidad_medida", "costo_base", "precio_lista", "activo"],
-    "cliente": ["id_cliente", "nit", "nombre", "tipo_cliente",
-                "municipio", "departamento", "fecha_alta"],
-    "venta": ["id_venta", "fecha", "id_cliente", "id_sucursal",
-              "canal", "metodo_pago", "estado"],
-    "venta_detalle": ["id_detalle", "id_venta", "id_producto", "cantidad",
-                      "precio_unitario", "descuento", "subtotal"],
+    "producto": [
+        "id_producto",
+        "sku",
+        "nombre",
+        "id_categoria",
+        "id_marca",
+        "unidad_medida",
+        "costo_base",
+        "precio_lista",
+        "activo",
+    ],
+    "cliente": [
+        "id_cliente",
+        "nit",
+        "nombre",
+        "tipo_cliente",
+        "municipio",
+        "departamento",
+        "fecha_alta",
+    ],
+    "venta": [
+        "id_venta",
+        "fecha",
+        "id_cliente",
+        "id_sucursal",
+        "canal",
+        "metodo_pago",
+        "estado",
+    ],
+    "venta_detalle": [
+        "id_detalle",
+        "id_venta",
+        "id_producto",
+        "cantidad",
+        "precio_unitario",
+        "descuento",
+        "subtotal",
+    ],
 }
 
 # columnas de texto donde aplica TRIM + '' -> NULL (el resto se castea directo;
 # un valor no casteable falla la tabla con error claro en el log)
-TEXTO = {"nombre", "ciudad", "departamento", "sku", "unidad_medida", "nit",
-         "tipo_cliente", "municipio", "canal", "metodo_pago", "estado"}
+TEXTO = {
+    "nombre",
+    "ciudad",
+    "departamento",
+    "sku",
+    "unidad_medida",
+    "nit",
+    "tipo_cliente",
+    "municipio",
+    "canal",
+    "metodo_pago",
+    "estado",
+}
 
 
 def conectar():
@@ -97,10 +138,14 @@ def cargar_tabla(conn, tabla, columnas, src_schema, tgt_schema):
 
 def main():
     ap = argparse.ArgumentParser(description="Carga OLTP -> raw (TRUNCATE + LOAD).")
-    ap.add_argument("--tables", default=",".join(TABLAS),
-                    help="Subconjunto separado por comas (default: todas).")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="Muestra el plan sin conectar ni cargar.")
+    ap.add_argument(
+        "--tables",
+        default=",".join(TABLAS),
+        help="Subconjunto separado por comas (default: todas).",
+    )
+    ap.add_argument(
+        "--dry-run", action="store_true", help="Muestra el plan sin conectar ni cargar."
+    )
     ap.add_argument("--source-schema", default=SOURCE_SCHEMA)
     ap.add_argument("--target-schema", default=TARGET_SCHEMA)
     args = ap.parse_args()
@@ -108,14 +153,19 @@ def main():
     pedidas = [t.strip() for t in args.tables.split(",") if t.strip()]
     desconocidas = [t for t in pedidas if t not in TABLAS]
     if desconocidas:
-        log.error("Tablas desconocidas: %s (válidas: %s)",
-                  desconocidas, sorted(TABLAS))
+        log.error("Tablas desconocidas: %s (válidas: %s)", desconocidas, sorted(TABLAS))
         return 1
 
     if args.dry_run:
         for t in pedidas:
-            log.info("[dry-run] TRUNCATE+LOAD %s.%s <- %s.%s (%d cols)",
-                     args.target_schema, t, args.source_schema, t, len(TABLAS[t]))
+            log.info(
+                "[dry-run] TRUNCATE+LOAD %s.%s <- %s.%s (%d cols)",
+                args.target_schema,
+                t,
+                args.source_schema,
+                t,
+                len(TABLAS[t]),
+            )
         return 0
 
     total = 0
@@ -129,11 +179,17 @@ def main():
     try:
         for tabla in pedidas:
             try:
-                n = cargar_tabla(conn, tabla, TABLAS[tabla],
-                                 args.source_schema, args.target_schema)
+                n = cargar_tabla(
+                    conn, tabla, TABLAS[tabla], args.source_schema, args.target_schema
+                )
                 total += n
-                log.info("OK %-14s %d filas (%s -> %s)",
-                         tabla, n, args.source_schema, args.target_schema)
+                log.info(
+                    "OK %-14s %d filas (%s -> %s)",
+                    tabla,
+                    n,
+                    args.source_schema,
+                    args.target_schema,
+                )
             except Exception:
                 conn.rollback()
                 fallos += 1

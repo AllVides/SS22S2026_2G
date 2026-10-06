@@ -9,6 +9,7 @@ Conexiones: el warehouse se resuelve solo con variables del `.env`
 (DBT_HOST/DBT_PORT/POSTGRES_*), disponibles en el contenedor. No requiere
 crear Airflow Connections en la UI. Schedule parametrizable con SGFOOD_SCHEDULE.
 """
+
 import logging
 import os
 from datetime import datetime, timedelta
@@ -23,7 +24,7 @@ SCRIPTS_DIR = "/opt/airflow/scripts"
 CSV_DIR = "/opt/airflow/raw-data"
 DBT_PROJECT_DIR = os.getenv("DBT_PROJECT_DIR", "/opt/airflow/dbt")
 DBT_PROFILES_DIR = os.getenv("DBT_PROFILES_DIR", "/opt/airflow/dbt")
-# NOTA: --profiles-dir es flag POR COMANDO (después del subcomando), no global.
+# --profiles-dir es flag POR COMANDO (después del subcomando), no global.
 # `dbt --profiles-dir X run` falla con "No such option".
 DBT_BIN = f"cd {DBT_PROJECT_DIR} && dbt"
 DBT_FLAGS = f"--profiles-dir {DBT_PROFILES_DIR}"
@@ -32,16 +33,22 @@ SCHEDULE = os.getenv("SGFOOD_SCHEDULE", "@daily")
 
 def _fallo_visible(context):
     ti = context["task_instance"]
-    log.error("FALLO %s.%s (run %s, intento %s)",
-              ti.dag_id, ti.task_id, context["run_id"], ti.try_number)
+    log.error(
+        "FALLO %s.%s (run %s, intento %s)",
+        ti.dag_id,
+        ti.task_id,
+        context["run_id"],
+        ti.try_number,
+    )
 
 
 def check_conexiones():
-    """Verifica env mínima + conexión al warehouse (SELECT 1)."""
+    """Verifica env mínima y conexión al warehouse (SELECT 1)."""
     import psycopg2
 
-    faltan = [v for v in ("POSTGRES_PASSWORD", "POSTGRES_WAREHOUSE_DB")
-              if not os.getenv(v)]
+    faltan = [
+        v for v in ("POSTGRES_PASSWORD", "POSTGRES_WAREHOUSE_DB") if not os.getenv(v)
+    ]
     if faltan:
         raise RuntimeError(f"Variables faltantes en el entorno: {faltan}")
     conn = psycopg2.connect(
@@ -57,7 +64,7 @@ def check_conexiones():
             cur.execute("SELECT 1;")
     finally:
         conn.close()
-    log.info("check_conexiones OK: warehouse alcanzable")
+    log.info("check_conexiones OK: warehouse existente y accesible")
 
 
 with DAG(
@@ -116,7 +123,7 @@ with DAG(
         bash_command=f"{DBT_BIN} test {DBT_FLAGS}",
     )
 
-    # validaciones.sql incluye bloques DO que lanzan EXCEPTION si hay
+    # validaciones.sql ya incluye bloques DO que lanzan EXCEPTION si hay
     # huérfanos/duplicados/nulos en claves -> psql sale != 0 -> tarea en rojo.
     validaciones_sql = BashOperator(
         task_id="validaciones_sql",
@@ -132,13 +139,15 @@ with DAG(
         bash_command=f"{DBT_BIN} docs generate {DBT_FLAGS}",
     )
 
-    (check_conexiones
-     >> extract_load_db
-     >> extract_load_csv
-     >> validar_conteos_raw
-     >> dbt_run_staging
-     >> dbt_run_intermediate
-     >> dbt_run_marts
-     >> dbt_test
-     >> validaciones_sql
-     >> dbt_docs_generate)
+    (
+        check_conexiones
+        >> extract_load_db
+        >> extract_load_csv
+        >> validar_conteos_raw
+        >> dbt_run_staging
+        >> dbt_run_intermediate
+        >> dbt_run_marts
+        >> dbt_test
+        >> validaciones_sql
+        >> dbt_docs_generate
+    )

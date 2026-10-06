@@ -37,19 +37,49 @@ TARGET_SCHEMA = os.getenv("RAW_SCHEMA", "raw")
 
 # archivo -> (tabla raw, columnas esperadas en orden)
 ARCHIVOS = {
-    "inventario_bodega": ("inventario_bodega",
-        ["fecha_corte", "id_sucursal", "id_producto", "stock_disponible",
-         "stock_minimo", "stock_maximo", "lote", "fecha_vencimiento"]),
-    "devoluciones": ("devoluciones",
-        ["id_devolucion", "fecha", "id_venta", "id_producto", "cantidad", "motivo"]),
-    "metas_ventas": ("metas_ventas",
-        ["periodo", "id_sucursal", "meta_ventas", "meta_unidades"]),
-    "promociones": ("promociones",
-        ["id_promocion", "nombre", "fecha_inicio", "fecha_fin",
-         "id_categoria", "porcentaje_descuento"]),
-    "proveedores_precios": ("proveedores_precios",
-        ["id_proveedor", "proveedor", "id_producto", "costo_proveedor",
-         "plazo_dias", "fecha_vigencia"]),
+    "inventario_bodega": (
+        "inventario_bodega",
+        [
+            "fecha_corte",
+            "id_sucursal",
+            "id_producto",
+            "stock_disponible",
+            "stock_minimo",
+            "stock_maximo",
+            "lote",
+            "fecha_vencimiento",
+        ],
+    ),
+    "devoluciones": (
+        "devoluciones",
+        ["id_devolucion", "fecha", "id_venta", "id_producto", "cantidad", "motivo"],
+    ),
+    "metas_ventas": (
+        "metas_ventas",
+        ["periodo", "id_sucursal", "meta_ventas", "meta_unidades"],
+    ),
+    "promociones": (
+        "promociones",
+        [
+            "id_promocion",
+            "nombre",
+            "fecha_inicio",
+            "fecha_fin",
+            "id_categoria",
+            "porcentaje_descuento",
+        ],
+    ),
+    "proveedores_precios": (
+        "proveedores_precios",
+        [
+            "id_proveedor",
+            "proveedor",
+            "id_producto",
+            "costo_proveedor",
+            "plazo_dias",
+            "fecha_vigencia",
+        ],
+    ),
 }
 
 
@@ -80,13 +110,17 @@ def leer_csv(path, columnas_esperadas):
         faltan = [c for c in columnas_esperadas if c not in reales]
         sobran = [c for c in reales if c not in columnas_esperadas]
         if faltan or sobran:
-            raise ValueError(f"{path}: columnas inválidas "
-                             f"(faltan={faltan}, sobran={sobran})")
+            raise ValueError(
+                f"{path}: columnas inválidas " f"(faltan={faltan}, sobran={sobran})"
+            )
         filas = []
         for i, reg in enumerate(lector, start=2):
-            filas.append([None if (reg[c] is None or reg[c].strip() == "")
-                          else reg[c].strip()
-                          for c in columnas_esperadas])
+            filas.append(
+                [
+                    None if (reg[c] is None or reg[c].strip() == "") else reg[c].strip()
+                    for c in columnas_esperadas
+                ]
+            )
     if not filas:
         raise ValueError(f"{path}: sin filas de datos")
     return filas
@@ -95,17 +129,17 @@ def leer_csv(path, columnas_esperadas):
 def cargar_csv(conn, tabla, columnas, filas, fuente):
     """TRUNCATE + INSERT por lotes en una transacción. Devuelve n filas."""
     from psycopg2.extras import execute_values
+
     cols = ", ".join(columnas)
     with conn.cursor() as cur:
         cur.execute(f"TRUNCATE TABLE {TARGET_SCHEMA}.{tabla};")
         execute_values(
             cur,
-            f"INSERT INTO {TARGET_SCHEMA}.{tabla} ({cols}, _source) "
-            f"VALUES %s",
+            f"INSERT INTO {TARGET_SCHEMA}.{tabla} ({cols}, _source) " f"VALUES %s",
             [(tuple(f) + (fuente,)) for f in filas],
         )
     conn.commit()
-    # NOTA: no se usa cur.rowcount porque execute_values inserta por páginas
+    # no se uso cur.rowcount porque execute_values inserta por páginas
     # (page_size=100) y rowcount solo refleja la última. Si no hubo excepción,
     # todas las filas se insertaron: se reporta len(filas) y verify_counts.py
     # confirma contra la DB.
@@ -114,22 +148,32 @@ def cargar_csv(conn, tabla, columnas, filas, fuente):
 
 def main():
     ap = argparse.ArgumentParser(description="Carga CSV -> raw (TRUNCATE + LOAD).")
-    ap.add_argument("--files", default=",".join(ARCHIVOS),
-                    help="Subconjunto (nombres sin .csv, separados por comas).")
-    ap.add_argument("--data-dir", default=os.getenv("CSV_DIR", "raw-data"),
-                    help="Directorio de CSV (default: raw-data).")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="Valida columnas y cuenta filas sin conectar ni cargar.")
+    ap.add_argument(
+        "--files",
+        default=",".join(ARCHIVOS),
+        help="Subconjunto (nombres sin .csv, separados por comas).",
+    )
+    ap.add_argument(
+        "--data-dir",
+        default=os.getenv("CSV_DIR", "raw-data"),
+        help="Directorio de CSV (default: raw-data).",
+    )
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Valida columnas y cuenta filas sin conectar ni cargar.",
+    )
     args = ap.parse_args()
 
     pedidos = [f.strip() for f in args.files.split(",") if f.strip()]
     desconocidos = [f for f in pedidos if f not in ARCHIVOS]
     if desconocidos:
-        log.error("Archivos desconocidos: %s (válidos: %s)",
-                  desconocidos, sorted(ARCHIVOS))
+        log.error(
+            "Archivos desconocidos: %s (válidos: %s)", desconocidos, sorted(ARCHIVOS)
+        )
         return 1
 
-    # Fase 1: leer + validar todo ANTES de tocar la DB (fail-fast)
+    # Fase 1: leer y validar todo ANTES de tocar la DB (fail-fast)
     lotes = {}
     try:
         for nombre in pedidos:
@@ -137,9 +181,12 @@ def main():
             path = os.path.join(args.data_dir, nombre + ".csv")
             filas = leer_csv(path, columnas)
             lotes[nombre] = (tabla, columnas, filas)
-            log.info("%-20s OK %d filas, columnas válidas%s",
-                     nombre + ".csv", len(filas),
-                     " [dry-run]" if args.dry_run else "")
+            log.info(
+                "%-20s OK %d filas, columnas válidas%s",
+                nombre + ".csv",
+                len(filas),
+                " [dry-run]" if args.dry_run else "",
+            )
     except FileNotFoundError as e:
         log.error("Archivo no encontrado: %s", e.filename)
         return 1
@@ -163,8 +210,13 @@ def main():
             try:
                 n = cargar_csv(conn, tabla, columnas, filas, nombre + ".csv")
                 total += n
-                log.info("OK %-20s %d filas (-> %s.%s)",
-                         nombre + ".csv", n, TARGET_SCHEMA, tabla)
+                log.info(
+                    "OK %-20s %d filas (-> %s.%s)",
+                    nombre + ".csv",
+                    n,
+                    TARGET_SCHEMA,
+                    tabla,
+                )
             except Exception:
                 conn.rollback()
                 fallos += 1

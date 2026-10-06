@@ -1,9 +1,9 @@
-name: 'sgfood'
-version: '1.0.0'
+name: "sgfood"
+version: "1.0.0"
 config-version: 2
 
 # Perfil definido en profiles.yml (usa variables del .env)
-profile: 'sgfood'
+profile: "sgfood"
 
 model-paths: ["models"]
 seed-paths: ["seeds"]
