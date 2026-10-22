@@ -1,0 +1,64 @@
+Conectarse al dataset público bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022
+
+Crear tablas derivadas en su propio proyecto para trabajar subconjuntos optimizados del dataset.
+
+Exportar o enlazar resultados a Google Sheets o Looker Studio para generar al menos 3 visualizaciones exploratorias.
+
+----------------------------------------
+
+Que es BigQuery ML
+
+es una herramienta de Google Cloud que permite crear, entrenar y evaluar modelos de aprendizaje automático (Machine Learning) directamente dentro de Google BigQuery usando comandos SQL estándar, sin necesidad de mover datos a sistemas externos ni usar lenguajes complejos como Python.
+
+----------------------------------------
+
+Que son las matrices de confucion
+
+
+matriz de confusión es una tabla estructurada que se utiliza para evaluar el rendimiento de un modelo de clasificación supervisada al comparar los valores reales (ground truth) con las predicciones del modelo. Su principal objetivo es mostrar de forma visual y explícita no solo qué tan preciso es un clasificador, sino también exactamente en qué tipo de errores está incurriendo (falsos positivos o falsos negativos).
+
+----------------------------------------
+
+
+Manejo de data leakage por data_split_eval_fraction y split personalizado.
+
+Ejecutar predicciones sobre nuevos registros.
+
+Representar resultados y hallazgos de los modelos mediante visualizaciones en el dashboard.
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+3.3 Requerimientos técnicos
+● Herramientas: Google Cloud Platform (GCP), Google BigQuery, Google Sheets o Looker Studio y GitHub.
+● Dataset: bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022.
+● Consultas: uso de funciones agregadas, funciones temporales, filtros, agrupaciones y transformaciones SQL.
+● Optimización: implementación de particiones (definido por el estudiante) y clustering (definido por el estudiante).
+● Conocimientos aplicados: análisis exploratorio de datos masivos, optimización de consultas y comunicación visual de hallazgos.
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+Que tiene que tener
+
+El estudiante deberá diseñar consultas SQL, aplicar técnicas de optimización mediante particiones y clustering, identifi car patrones signifi cativos de viaje, costo y comportamiento de usuarios, y presentar hallazgos mediante visualizaciones exploratorias claras
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+Fase 1
+1. Conectarse al dataset público bigquery-public-data.new_york_taxi_trips.tlc_yellow_trips_2022.
+
+Fase 2
+2. Realizar consultas SQL avanzadas para calcular métricas descriptivas, analizar distribuciones categóricas y detectar patrones temporales.
+3. Crear tablas derivadas en su propio proyecto para trabajar subconjuntos optimizados del dataset.
+4. Implementar particiones por fecha y clustering por ubicaciones para reducir el costo de procesamiento.
+5. Comparar el rendimiento de las consultas antes y después de aplicar optimización.
+
+Fase 4
+6. Exportar o enlazar resultados a Google Sheets o Looker Studio para generar al menos 3 visualizaciones exploratorias.
+7. Documentar el proceso en un repositorio organizado, incluyendo scripts SQL, capturas de consultas, evidencias e informe visual.
+
+Fase 3
+8. Usar BigQuery ML para entrenar al menos 2 modelo predictivo sobre un dataset limpio.
+9. Implementación y comparación entre modelos con distintas métricas de evaluación e hiperparametros (como ROC-AUC, RMSE, matriz de confusión o iteraciones)
+10. Manejo de data leakage por data_split_eval_fraction y split personalizado.
+11. Ejecutar predicciones sobre nuevos registros.
+12. Representar resultados y hallazgos de los modelos mediante visualizaciones en el dashboard.
